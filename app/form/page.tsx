@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -303,17 +304,24 @@ function HospitalCard({ result }: { result: HospitalResult }) {
   );
 }
 
-// ── Main form page ─────────────────────────────────────────────────────────
-export default function FormPage() {
+// ── Main form content ──────────────────────────────────────────────────────
+function FormContent() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+
+  const queryExam = searchParams.get('exam');
+  const queryGender = searchParams.get('gender') as 'male' | 'female' | 'any' | null;
+  const queryArea = searchParams.get('area');
 
   const [areas, setAreas] = useState<Area[]>([]);
   const [areasLoading, setAreasLoading] = useState(true);
   const [areasError, setAreasError] = useState<string | null>(null);
 
-  const [examSlug, setExamSlug] = useState('usg');
-  const [genderPref, setGenderPref] = useState<'male' | 'female' | 'any'>('any');
-  const [areaId, setAreaId] = useState('');
+  const [examSlug, setExamSlug] = useState(queryExam || 'usg');
+  const [genderPref, setGenderPref] = useState<'male' | 'female' | 'any'>(
+    queryGender && ['male', 'female', 'any'].includes(queryGender) ? queryGender : 'any'
+  );
+  const [areaId, setAreaId] = useState(queryArea || '');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -324,12 +332,22 @@ export default function FormPage() {
     fetch('/api/areas')
       .then((r) => r.json())
       .then((data) => {
-        setAreas(data.areas ?? []);
-        if (data.areas?.length > 0) setAreaId(data.areas[0].id);
+        const list: Area[] = data.areas ?? [];
+        setAreas(list);
+        if (!areaId && list.length > 0) {
+          if (queryArea) {
+            const found = list.find(
+              (a) => a.id === queryArea || a.name_en.toLowerCase() === queryArea.toLowerCase()
+            );
+            setAreaId(found ? found.id : list[0].id);
+          } else {
+            setAreaId(list[0].id);
+          }
+        }
       })
       .catch(() => setAreasError('Failed to load areas.'))
       .finally(() => setAreasLoading(false));
-  }, []);
+  }, [areaId, queryArea]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,5 +611,19 @@ export default function FormPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function FormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ maxWidth: 680, margin: '2rem auto', padding: '1rem', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>Loading form…</p>
+        </div>
+      }
+    >
+      <FormContent />
+    </Suspense>
   );
 }

@@ -1,11 +1,11 @@
 {
   "SEED_IS_DEV": true,
   "areas": [
-    { "id": "a0000000-0000-0000-0000-000000000001", "name_en": "Dhanmondi", "name_bn": "ধানমণ্ডি", "lat": 23.7461, "lng": 90.3742, "aliases": ["dhanmondi", "dhaka-dhanmondi"] },
-    { "id": "a0000000-0000-0000-0000-000000000002", "name_en": "Mirpur",    "name_bn": "মিরপুর",   "lat": 23.8041, "lng": 90.3654, "aliases": ["mirpur"] },
-    { "id": "a0000000-0000-0000-0000-000000000003", "name_en": "Azimpur",   "name_bn": "আজিমপুর",  "lat": 23.7282, "lng": 90.3869, "aliases": ["azimpur"] },
-    { "id": "a0000000-0000-0000-0000-000000000004", "name_en": "Uttara",    "name_bn": "উত্তরা",   "lat": 23.8759, "lng": 90.3795, "aliases": ["uttara"] },
-    { "id": "a0000000-0000-0000-0000-000000000005", "name_en": "Gulshan",   "name_bn": "গুলশান",   "lat": 23.7925, "lng": 90.4078, "aliases": ["gulshan"] }
+    { "id": "a0000000-0000-0000-0000-000000000001", "name_en": "Dhanmondi", "name_bn": "ধানমণ্ডি", "lat": 23.7461, "lng": 90.3742, "aliases": ["dhanmondi", "dhaka-dhanmondi", "ধানমন্ডি", "ধানমণ্ডি"] },
+    { "id": "a0000000-0000-0000-0000-000000000002", "name_en": "Mirpur",    "name_bn": "মিরপুর",   "lat": 23.8041, "lng": 90.3654, "aliases": ["mirpur", "মিরপুর", "মিরপুর ১০", "mirpur 10"] },
+    { "id": "a0000000-0000-0000-0000-000000000003", "name_en": "Azimpur",   "name_bn": "আজিমপুর",  "lat": 23.7282, "lng": 90.3869, "aliases": ["azimpur", "আজিমপুর"] },
+    { "id": "a0000000-0000-0000-0000-000000000004", "name_en": "Uttara",    "name_bn": "উত্তরা",   "lat": 23.8759, "lng": 90.3795, "aliases": ["uttara", "উত্তরা"] },
+    { "id": "a0000000-0000-0000-0000-000000000005", "name_en": "Gulshan",   "name_bn": "গুলশান",   "lat": 23.7925, "lng": 90.4078, "aliases": ["gulshan", "গুলশান"] }
   ],
   "hospitals": [
     { "id": "b0000000-0000-0000-0000-000000000001", "name_en": "DEV Hospital 1 - Dhanmondi", "name_bn": "ডেভ হাসপাতাল ১ - ধানমণ্ডি", "area_id": "a0000000-0000-0000-0000-000000000001", "address": "House 12, Road 5, Dhanmondi, Dhaka", "lat": 23.7465, "lng": 90.3750, "source": "dev-seed", "last_verified_at": "2026-10-01T00:00:00Z" },
@@ -16,9 +16,9 @@
     { "id": "b0000000-0000-0000-0000-000000000006", "name_en": "DEV Centre 6 - Dhanmondi",   "name_bn": "ডেভ সেন্টার ৬ - ধানমণ্ডি",  "area_id": "a0000000-0000-0000-0000-000000000001", "address": "Road 27, Dhanmondi, Dhaka",             "lat": 23.7455, "lng": 90.3735, "source": "dev-seed", "last_verified_at": "2026-10-15T00:00:00Z" }
   ],
   "exams": [
-    { "id": "c0000000-0000-0000-0000-000000000001", "slug": "usg",  "name_en": "Ultrasonography (USG)", "name_bn": "আলট্রাসনোগ্রাফি",      "aliases": ["ultrasound","sonography","usg","আলট্রা"] },
-    { "id": "c0000000-0000-0000-0000-000000000002", "slug": "xray", "name_en": "X-Ray",                 "name_bn": "এক্স-রে",              "aliases": ["x-ray","xray","রঞ্জন"] },
-    { "id": "c0000000-0000-0000-0000-000000000003", "slug": "cbc",  "name_en": "CBC Blood Test",         "name_bn": "সিবিসি রক্ত পরীক্ষা", "aliases": ["cbc","complete blood count","blood test","রক্ত"] }
+    { "id": "c0000000-0000-0000-0000-000000000001", "slug": "usg",  "name_en": "Ultrasonography (USG)", "name_bn": "আলট্রাসনোগ্রাফি",      "aliases": ["ultrasound","sonography","usg","ultra","আলট্রা","আল্ট্রা","আল্ট্রাসাউন্ড","আলট্রাসনোগ্রাফি","ইউএসজি"] },
+    { "id": "c0000000-0000-0000-0000-000000000002", "slug": "xray", "name_en": "X-Ray",                 "name_bn": "এক্স-রে",              "aliases": ["x-ray","xray","রঞ্জন","এক্সরে","এক্স-রে"] },
+    { "id": "c0000000-0000-0000-0000-000000000003", "slug": "cbc",  "name_en": "CBC Blood Test",         "name_bn": "সিবিসি রক্ত পরীক্ষা", "aliases": ["cbc","complete blood count","blood test","রক্ত","রক্ত পরীক্ষা","সিবিসি"] }
   ],
   "hospital_exams": [
     { "hospital_id": "b0000000-0000-0000-0000-000000000001", "exam_id": "c0000000-0000-0000-0000-000000000001", "price": 800,  "price_source": "reception board (dev)",    "price_checked_at": "2026-10-20T00:00:00Z" },
