@@ -3,6 +3,12 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type {
+  CustomSpeechWindow,
+  ISpeechRecognition,
+  SpeechRecognitionEvent,
+  SpeechRecognitionErrorEvent,
+} from '@/lib/speech-types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface AreaItem {
@@ -105,6 +111,14 @@ function ChatLandingContent() {
 
   // Modal / selector picker for chips
   const [editingChip, setEditingChip] = useState<'exam' | 'gender' | 'area' | null>(null);
+
+  // Voice-to-text states & refs
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const baseInputRef = useRef<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -217,9 +231,206 @@ function ChatLandingContent() {
     setActiveFollowUp(null);
   };
 
+  // Feature-detect Web Speech API on mount (Requirement 5)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const speechWin = window as unknown as CustomSpeechWindow;
+      const supported = Boolean(speechWin.SpeechRecognition || speechWin.webkitSpeechRecognition);
+      setIsSpeechSupported(supported);
+    }
+  }, []);
+
+  // Stop recognition on unmount (Requirement 7)
+  useEffect(() => {
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {}
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
+  // Stop recognition if language switched mid-session (Requirement 2 & 7)
+  useEffect(() => {
+    if (isListening && recognitionRef.current) {
+      stopListening();
+    }
+  }, [lang]);
+
+  // Reset 15 seconds of silence timer (Requirement 7)
+  const resetSilenceTimer = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+    }
+    silenceTimerRef.current = setTimeout(() => {
+      stopListening();
+      setVoiceError(
+        t(
+          'No speech detected for 15 seconds. Listening stopped.',
+          '১৫ সেকেন্ডে কোনো শব্দ পাওয়া যায়নি। শোনা বন্ধ করা হয়েছে।'
+        )
+      );
+    }, 15000);
+  };
+
+  const stopListening = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+    setIsListening(false);
+  };
+
+  const startListening = () => {
+    setVoiceError(null);
+    if (typeof window === 'undefined') return;
+
+    const speechWin = window as unknown as CustomSpeechWindow;
+    const SpeechConstructor = speechWin.SpeechRecognition || speechWin.webkitSpeechRecognition;
+
+    if (!SpeechConstructor) {
+      setIsSpeechSupported(false);
+      return;
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {}
+      recognitionRef.current = null;
+    }
+
+    try {
+      const recognition = new SpeechConstructor();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
+
+      baseInputRef.current = input;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        resetSilenceTimer();
+      };
+
+      recognition.onaudiostart = () => {
+        resetSilenceTimer();
+      };
+
+      recognition.onspeechstart = () => {
+        resetSilenceTimer();
+      };
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        resetSilenceTimer();
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = 0; i < event.results.length; ++i) {
+          const item = event.results[i];
+          if (item.isFinal) {
+            finalTranscript += item[0].transcript;
+          } else {
+            interimTranscript += item[0].transcript;
+          }
+        }
+
+        const prefix = baseInputRef.current ? baseInputRef.current.trim() + ' ' : '';
+        const combined = (prefix + finalTranscript + ' ' + interimTranscript).trim();
+        setInput(combined);
+      };
+
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        setIsListening(false);
+
+        const errCode = event.error;
+        let msg = '';
+        switch (errCode) {
+          case 'not-allowed':
+            msg = t(
+              'Microphone permission denied. Please allow microphone access in your browser settings.',
+              'মাইক্রোফোনের অনুমতি বাতিল করা হয়েছে। ব্রাউজার সেটিংসে অনুমতি দিন।'
+            );
+            break;
+          case 'no-speech':
+            msg = t(
+              'No speech detected. Please try speaking again.',
+              'কোনো কথা শনাক্ত করা যায়নি। অনুগ্রহ করে আবার বলুন।'
+            );
+            break;
+          case 'network':
+            msg = t(
+              'Network error during voice recognition. Please check your connection.',
+              'ভয়েস রিকগনিশনে নেটওয়ার্ক ত্রুটি হয়েছে। সংযোগ পরীক্ষা করুন।'
+            );
+            break;
+          case 'audio-capture':
+            msg = t(
+              'Microphone unavailable or not found.',
+              'মাইক্রোফোন পাওয়া যায়নি বা অনুপলব্ধ।'
+            );
+            break;
+          case 'aborted':
+            // Aborted deliberately by user or code - do not display error
+            return;
+          default:
+            msg = t(
+              'Speech recognition error. Please try again or type your message.',
+              'ভয়েস ইনপুটে সমস্যা হয়েছে। আবার চেষ্টা করুন বা লিখে পাঠান।'
+            );
+            break;
+        }
+        setVoiceError(msg);
+      };
+
+      recognition.onend = () => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        setIsListening(false);
+        recognitionRef.current = null;
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.warn('SpeechRecognition failed to start:', err);
+      setIsListening(false);
+      setVoiceError(
+        t(
+          'Could not start voice recognition. Please check browser permissions.',
+          'ভয়েস ইনপুট চালু করা যায়নি। ব্রাউজারের অনুমতি পরীক্ষা করুন।'
+        )
+      );
+    }
+  };
+
   const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
     if (!query) return;
+
+    // Stop recognition if active on send (Requirement 7)
+    if (recognitionRef.current || isListening) {
+      stopListening();
+    }
+    setVoiceError(null);
 
     setInput('');
     const userMsgId = Date.now().toString();
@@ -770,63 +981,156 @@ function ChatLandingContent() {
             }}
             style={{
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
               gap: '0.5rem',
             }}
           >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={t('Type your request in English or Bangla…', 'আপনার প্রয়োজন বাংলায় বা ইংরেজিতে লিখুন…')}
+            <div
               style={{
-                flex: 1,
-                minHeight: 48,
-                padding: '0 1.25rem',
-                borderRadius: 9999,
-                border: '1px solid var(--border)',
-                background: 'var(--bg)',
-                color: 'var(--text-primary)',
-                fontSize: '1rem',
-                outline: 'none',
-              }}
-            />
-
-            {/* Hidden microphone button (reserved space for later phase per UI Flow) */}
-            <button
-              type="button"
-              style={{ display: 'none' }}
-              aria-label="Voice input"
-              disabled
-            >
-              🎤
-            </button>
-
-            {/* Send button */}
-            <button
-              type="submit"
-              disabled={!input.trim() || isTyping}
-              style={{
-                minHeight: 48,
-                minWidth: 48,
-                padding: '0 1.25rem',
-                borderRadius: 9999,
-                background: 'var(--primary)',
-                color: '#FFFFFF',
-                border: 'none',
-                fontWeight: 600,
-                fontSize: '0.9375rem',
-                cursor: !input.trim() || isTyping ? 'not-allowed' : 'pointer',
-                opacity: !input.trim() || isTyping ? 0.6 : 1,
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.375rem',
+                gap: '0.5rem',
               }}
             >
-              <span>{t('Send', 'পাঠান')}</span>
-              <span>➤</span>
-            </button>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (voiceError) setVoiceError(null);
+                }}
+                placeholder={
+                  isListening
+                    ? t('Listening… speak now', 'শুনছি… এখন কথা বলুন')
+                    : t('Type your request in English or Bangla…', 'আপনার প্রয়োজন বাংলায় বা ইংরেজিতে লিখুন…')
+                }
+                style={{
+                  flex: 1,
+                  minHeight: 48,
+                  padding: '0 1.25rem',
+                  borderRadius: 9999,
+                  border: isListening ? '2px solid #dc2626' : '1px solid var(--border)',
+                  background: 'var(--bg)',
+                  color: 'var(--text-primary)',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border 0.2s',
+                }}
+              />
+
+              {/* Native Web Speech Voice-to-Text Button (Requirements 1, 3, 5) */}
+              {isSpeechSupported && (
+                <button
+                  type="button"
+                  onClick={isListening ? stopListening : startListening}
+                  className={isListening ? 'mic-active' : ''}
+                  aria-label={
+                    isListening
+                      ? t('Stop voice recording', 'ভয়েস রেকর্ডিং বন্ধ করুন')
+                      : t('Start voice recording', 'ভয়েস রেকর্ডিং শুরু করুন')
+                  }
+                  title={
+                    isListening
+                      ? t('Stop voice recording', 'ভয়েস রেকর্ডিং বন্ধ করুন')
+                      : t('Start voice recording', 'ভয়েস রেকর্ডিং শুরু করুন')
+                  }
+                  style={{
+                    minHeight: 48,
+                    minWidth: 48,
+                    borderRadius: 9999,
+                    border: '1px solid var(--border)',
+                    background: isListening ? '#dc2626' : 'var(--tint)',
+                    color: isListening ? '#FFFFFF' : 'var(--text-primary)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.25rem',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {isListening ? '⏹' : '🎤'}
+                </button>
+              )}
+
+              {/* Send button */}
+              <button
+                type="submit"
+                disabled={!input.trim() || isTyping}
+                style={{
+                  minHeight: 48,
+                  minWidth: 48,
+                  padding: '0 1.25rem',
+                  borderRadius: 9999,
+                  background: 'var(--primary)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9375rem',
+                  cursor: !input.trim() || isTyping ? 'not-allowed' : 'pointer',
+                  opacity: !input.trim() || isTyping ? 0.6 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.375rem',
+                  flexShrink: 0,
+                }}
+              >
+                <span>{t('Send', 'পাঠান')}</span>
+                <span>➤</span>
+              </button>
+            </div>
+
+            {/* Listening indicator badge (Requirement 3) */}
+            {isListening && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '2px 4px',
+                }}
+              >
+                <span className="listening-badge-dot" />
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#dc2626' }}>
+                  {t('Listening…', 'শুনছি…')} ({lang === 'bn' ? 'বাংলা bn-BD' : 'English en-US'})
+                </span>
+              </div>
+            )}
+
+            {/* Plain error message under input (Requirement 6) */}
+            {voiceError && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  padding: '2px 4px',
+                }}
+              >
+                <span style={{ fontSize: '0.8125rem', color: 'var(--error-text)', fontWeight: 500 }}>
+                  ⚠️ {voiceError}
+                </span>
+              </div>
+            )}
+
+            {/* Privacy note under mic / input (Requirement 8) */}
+            {isSpeechSupported && (
+              <p
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--text-secondary)',
+                  margin: '2px 4px 0',
+                  lineHeight: 1.4,
+                }}
+              >
+                🎙️ {t(
+                  "Voice is processed by your browser's speech service. Don't say names or phone numbers.",
+                  "ভয়েস আপনার ব্রাউজারের স্পিচ সার্ভিস দ্বারা প্রসেস হয়। নাম বা ফোন নম্বর বলবেন না।"
+                )}
+              </p>
+            )}
           </form>
 
           {/* Three tappable example chips below input */}

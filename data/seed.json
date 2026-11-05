@@ -4,7 +4,9 @@
     { "id": "a0000000-0000-0000-0000-000000000001", "name_en": "Dhanmondi", "name_bn": "ধানমণ্ডি", "lat": 23.7461, "lng": 90.3742, "aliases": ["dhanmondi", "dhaka-dhanmondi", "ধানমন্ডি", "ধানমণ্ডি"] },
     { "id": "a0000000-0000-0000-0000-000000000002", "name_en": "Mirpur",    "name_bn": "মিরপুর",   "lat": 23.8041, "lng": 90.3654, "aliases": ["mirpur", "মিরপুর", "মিরপুর ১০", "mirpur 10"] },
     { "id": "a0000000-0000-0000-0000-000000000003", "name_en": "Green Road", "name_bn": "গ্রিন রোড", "lat": 23.7500, "lng": 90.3850, "aliases": ["green road", "গ্রিন রোড", "panthapath"] },
-    { "id": "a0000000-0000-0000-0000-000000000004", "name_en": "Uttara",    "name_bn": "উত্তরা",   "lat": 23.8759, "lng": 90.3795, "aliases": ["uttara", "উত্তরা"] }
+    { "id": "a0000000-0000-0000-0000-000000000004", "name_en": "Uttara",    "name_bn": "উত্তরা",   "lat": 23.8759, "lng": 90.3795, "aliases": ["uttara", "উত্তরা"] },
+    { "id": "a0000000-0000-0000-0000-000000000005", "name_en": "Azimpur",   "name_bn": "আজিমপুর",  "lat": 23.7282, "lng": 90.3869, "aliases": ["azimpur", "আজিমপুর"] },
+    { "id": "a0000000-0000-0000-0000-000000000006", "name_en": "Gulshan",   "name_bn": "গুলশান",   "lat": 23.7925, "lng": 90.4078, "aliases": ["gulshan", "গুলশান"] }
   ],
   "hospitals": [
     { 
