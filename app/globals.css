@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
-/* ── Design Tokens ───────────────────────────────────────────── */
+/* ── Design Tokens (Matched to Buildathon Badge) ────────────── */
 :root {
   --bg: #FAFBF8;
   --surface: #FFFFFF;
-  --border: #E3EAE0;
-  --primary: #5E9E7A;
-  --primary-hover: #4C8766;
-  --tint: #E8F3EC;
-  --text-primary: #1F2D26;
-  --text-secondary: #5B6B62;
+  --border: #E2E8F0;
+  --primary: #1E1B4B;       /* Deep badge indigo */
+  --primary-hover: #312E81;
+  --tint: #EEF2FF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
   --warning-text: #B7791F;
   --warning-bg: #FDF3DC;
   --error-text: #B3392F;
@@ -17,14 +17,14 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0F1713;
-  --surface: #17221C;
-  --border: #26362D;
-  --primary: #7DBF98;
-  --primary-hover: #92CCA9;
-  --tint: #1E3328;
-  --text-primary: #E8F0EA;
-  --text-secondary: #9DB0A4;
+  --bg: #0F172A;
+  --surface: #1E1B4B;       /* Deep badge indigo background for dark mode */
+  --border: #312E81;
+  --primary: #818CF8;       /* Bright accent indigo/purple */
+  --primary-hover: #6366F1;
+  --tint: #312E81;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
   --warning-text: #D4920A;
   --warning-bg: #2A1F08;
   --error-text: #E06B5F;
