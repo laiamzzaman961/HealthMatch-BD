@@ -118,7 +118,6 @@ function ChatLandingContent() {
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const baseInputRef = useRef<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -318,8 +317,6 @@ function ChatLandingContent() {
       recognition.maxAlternatives = 1;
       recognition.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
 
-      baseInputRef.current = input;
-
       recognition.onstart = () => {
         setIsListening(true);
         resetSilenceTimer();
@@ -335,21 +332,23 @@ function ChatLandingContent() {
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         resetSilenceTimer();
-        let interimTranscript = '';
         let finalTranscript = '';
+        let interimTranscript = '';
 
-        for (let i = 0; i < event.results.length; ++i) {
-          const item = event.results[i];
-          if (item.isFinal) {
-            finalTranscript += item[0].transcript;
+        // Start from event.resultIndex to avoid re-processing already-handled results
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
           } else {
-            interimTranscript += item[0].transcript;
+            interimTranscript += transcript;
           }
         }
 
-        const prefix = baseInputRef.current ? baseInputRef.current.trim() + ' ' : '';
-        const combined = (prefix + finalTranscript + ' ' + interimTranscript).trim();
-        setInput(combined);
+        const updatedText = (finalTranscript || interimTranscript).trim();
+        if (updatedText) {
+          setInput(updatedText); // Replace — do NOT append to previous state
+        }
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -634,6 +633,9 @@ function ChatLandingContent() {
                 fontWeight: 500,
               }}
             >
+              <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--text-secondary)', opacity: 0.75 }}>
+                {t('Exam ·', 'পরীক্ষা ·')}
+              </span>
               <span>🔬 {getExamLabel(examSlug)}</span>
               <button
                 onClick={() => { setExamSlug(null); setMatchResults(null); }}
@@ -679,6 +681,9 @@ function ChatLandingContent() {
                 fontWeight: 500,
               }}
             >
+              <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--text-secondary)', opacity: 0.75 }}>
+                {t('Doctor ·', 'ডাক্তার ·')}
+              </span>
               <span>👤 {getGenderLabel(genderPref)}</span>
               <button
                 onClick={() => { setGenderPref(null); setMatchResults(null); }}
@@ -724,6 +729,9 @@ function ChatLandingContent() {
                 fontWeight: 500,
               }}
             >
+              <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--text-secondary)', opacity: 0.75 }}>
+                {t('Area ·', 'এলাকা ·')}
+              </span>
               <span>📍 {getAreaLabel(areaId)}</span>
               <button
                 onClick={() => { setAreaId(null); setMatchResults(null); }}
