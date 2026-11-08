@@ -4,17 +4,20 @@ import { BuildathonSticker } from './BuildathonSticker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
   const { lang, setLang, t } = useLanguage();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const pathname = usePathname();
 
   useEffect(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || stored === 'light') {
       setTheme(stored);
     } else {
-      setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setTheme('light');
+      document.documentElement.dataset.theme = 'light';
     }
   }, []);
 
@@ -25,140 +28,82 @@ export function Navbar() {
     document.documentElement.dataset.theme = next;
   };
 
+  const isDoctors = pathname === '/' || pathname === '/discovery' || pathname === '/doctors';
+  const isChat = pathname === '/chat';
+
   return (
-    <nav
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        height: 64,
-        background: 'var(--surface)',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 0.75rem',
-        gap: '0.5rem',
-      }}
-    >
-      {/* Left side — branding group */}
+    <nav className="sticky top-0 z-40 h-16 bg-white/85 backdrop-blur-md border-b border-[#D1DBE0] flex items-center justify-between px-3 sm:px-6 gap-2 transition-colors">
+      {/* Left side — branding */}
       <Link
         href="/"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          minWidth: 0,
-          overflow: 'hidden',
-          flexShrink: 1,
-          textDecoration: 'none',
-        }}
+        className="flex items-center gap-2.5 min-w-0 overflow-hidden flex-shrink-1 text-decoration-none group"
       >
         <BuildathonSticker />
 
-        {/* Health + search SVG icon */}
-        <svg
-          aria-hidden="true"
-          width={20}
-          height={20}
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ flexShrink: 0, color: 'var(--primary)' }}
-        >
-          {/* Cross / plus mark */}
-          <rect x={8} y={2} width={4} height={10} rx={1.5} fill="currentColor" opacity={0.85} />
-          <rect x={4} y={6} width={12} height={4} rx={1.5} fill="currentColor" opacity={0.85} />
-          {/* Magnifier circle + handle */}
-          <circle
-            cx={11}
-            cy={11}
-            r={6}
-            stroke="currentColor"
-            strokeWidth={2}
-            fill="none"
-          />
-          <line
-            x1={15.5}
-            y1={15.5}
-            x2={18.5}
-            y2={18.5}
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
-        </svg>
+        {/* Minimalist Medical Cross & Magnifier Icon */}
+        <div className="w-8 h-8 rounded-full bg-[#010508] text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 6v12M6 12h12" />
+          </svg>
+        </div>
 
-        {/* App title — hidden on very small screens to avoid overflow */}
-        <span
-          style={{
-            fontWeight: 700,
-            fontSize: '1.0625rem',
-            color: 'var(--primary)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            // Clamp to prevent overflow on tiny screens; JS-free responsive trick
-            maxWidth: 'clamp(0px, 30vw, 220px)',
-          }}
-        >
+        <span className="font-extrabold text-base sm:text-lg text-[#010508] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px] sm:max-w-[220px]">
           {t('HealthMatch BD', 'হেলথম্যাচ BD')}
         </span>
       </Link>
 
-      {/* Right side — controls, never shrink */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexShrink: 0 }}>
-        {/* Doctor Discovery Link */}
+      {/* Navigation Links Pill Group */}
+      <div className="hidden md:flex items-center gap-1 bg-[#E4E9EC]/70 p-1 rounded-full border border-[#D1DBE0]">
         <Link
-          href="/discovery"
-          title="Modern Doctor Discovery"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-            padding: '0 0.625rem',
-            height: 38,
-            borderRadius: 9999,
-            background: 'var(--tint)',
-            color: 'var(--primary)',
-            fontWeight: 600,
-            fontSize: '0.75rem',
-            border: '1px solid var(--border)',
-            textDecoration: 'none',
-          }}
+          href="/"
+          className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition ${
+            isDoctors
+              ? 'bg-[#010508] text-white shadow-sm'
+              : 'text-[#51575D] hover:text-[#010508]'
+          }`}
         >
-          <span>🩺</span>
-          <span style={{ whiteSpace: 'nowrap' }}>Discovery</span>
+          {t('🩺 Find Doctors', '🩺 ডাক্তার খুঁজুন')}
         </Link>
+        <Link
+          href="/chat"
+          className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition ${
+            isChat
+              ? 'bg-[#010508] text-white shadow-sm'
+              : 'text-[#51575D] hover:text-[#010508]'
+          }`}
+        >
+          {t('💬 Bengali Match Chat', '💬 বাংলা চ্যাট')}
+        </Link>
+        <Link
+          href="/form"
+          className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition ${
+            pathname === '/form'
+              ? 'bg-[#010508] text-white shadow-sm'
+              : 'text-[#51575D] hover:text-[#010508]'
+          }`}
+        >
+          {t('📋 Form Search', '📋 ফর্ম সার্চ')}
+        </Link>
+      </div>
 
-        {/* Language segmented control */}
+      {/* Right side — Controls */}
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        {/* Language selector */}
         <div
           role="group"
           aria-label="Language selector"
-          style={{
-            display: 'flex',
-            border: '1px solid var(--border)',
-            borderRadius: 9999,
-            overflow: 'hidden',
-          }}
+          className="flex border border-[#D1DBE0] rounded-full overflow-hidden bg-white/70 shadow-sm"
         >
           {(['en', 'bn'] as const).map((l) => (
             <button
               key={l}
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
-              style={{
-                minWidth: 44,
-                minHeight: 44,
-                padding: '0 0.625rem',
-                background: lang === l ? 'var(--primary)' : 'transparent',
-                color: lang === l ? '#fff' : 'var(--text-secondary)',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: lang === l ? 600 : 400,
-                fontSize: '0.8125rem',
-                transition: 'background 0.15s, color 0.15s',
-              }}
+              className={`min-w-[40px] h-9 px-2.5 text-xs font-bold transition ${
+                lang === l
+                  ? 'bg-[#010508] text-white'
+                  : 'bg-transparent text-[#51575D] hover:text-[#010508]'
+              }`}
             >
               {l === 'en' ? 'EN' : 'বাংলা'}
             </button>
@@ -169,18 +114,7 @@ export function Navbar() {
         <button
           onClick={toggleTheme}
           aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          style={{
-            minWidth: 44,
-            minHeight: 44,
-            border: '1px solid var(--border)',
-            borderRadius: 9999,
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: '1.125rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-9 h-9 rounded-full border border-[#D1DBE0] bg-white/70 hover:bg-white text-sm flex items-center justify-center transition shadow-sm"
         >
           {theme === 'light' ? '🌙' : '☀️'}
         </button>
