@@ -3,6 +3,7 @@
 import { BuildathonSticker } from './BuildathonSticker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export function Navbar() {
   const { lang, setLang, t } = useLanguage();
@@ -41,7 +42,8 @@ export function Navbar() {
       }}
     >
       {/* Left side — branding group */}
-      <div
+      <Link
+        href="/"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -49,6 +51,7 @@ export function Navbar() {
           minWidth: 0,
           overflow: 'hidden',
           flexShrink: 1,
+          textDecoration: 'none',
         }}
       >
         <BuildathonSticker />
@@ -101,10 +104,33 @@ export function Navbar() {
         >
           {t('HealthMatch BD', 'হেলথম্যাচ BD')}
         </span>
-      </div>
+      </Link>
 
       {/* Right side — controls, never shrink */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexShrink: 0 }}>
+        {/* Doctor Discovery Link */}
+        <Link
+          href="/discovery"
+          title="Modern Doctor Discovery"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0 0.625rem',
+            height: 38,
+            borderRadius: 9999,
+            background: 'var(--tint)',
+            color: 'var(--primary)',
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            border: '1px solid var(--border)',
+            textDecoration: 'none',
+          }}
+        >
+          <span>🩺</span>
+          <span style={{ whiteSpace: 'nowrap' }}>Discovery</span>
+        </Link>
+
         {/* Language segmented control */}
         <div
           role="group"
