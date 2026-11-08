@@ -28,9 +28,6 @@ export function Navbar() {
     document.documentElement.dataset.theme = next;
   };
 
-  const isDoctors = pathname === '/' || pathname === '/discovery' || pathname === '/doctors';
-  const isChat = pathname === '/chat';
-
   return (
     <nav className="sticky top-0 z-40 h-16 bg-white/85 backdrop-blur-md border-b border-[#D1DBE0] flex items-center justify-between px-3 sm:px-6 gap-2 transition-colors">
       {/* Left side — branding */}
@@ -57,22 +54,12 @@ export function Navbar() {
         <Link
           href="/"
           className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition ${
-            isDoctors
+            pathname === '/'
               ? 'bg-[#010508] text-white shadow-sm'
               : 'text-[#51575D] hover:text-[#010508]'
           }`}
         >
-          {t('🩺 Find Doctors', '🩺 ডাক্তার খুঁজুন')}
-        </Link>
-        <Link
-          href="/chat"
-          className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition ${
-            isChat
-              ? 'bg-[#010508] text-white shadow-sm'
-              : 'text-[#51575D] hover:text-[#010508]'
-          }`}
-        >
-          {t('💬 Bengali Match Chat', '💬 বাংলা চ্যাট')}
+          {t('💬 Bengali Match Chat', '💬 বাংলা ম্যাচ চ্যাট')}
         </Link>
         <Link
           href="/form"
