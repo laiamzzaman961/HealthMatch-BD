@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
 /* ── Modern Minimalist Healthcare Design Tokens ───────────────── */
 :root {
   --bg: #DCE3E7;
   --bg-gradient: linear-gradient(135deg, #D1DBE0 0%, #DCE3E7 50%, #E4E9EC 100%);
   --surface: #FFFFFF;
-  --surface-frosted: rgba(255, 255, 255, 0.85);
+  --surface-frosted: rgba(255, 255, 255, 0.90);
   --border: #D1DBE0;
   --border-subtle: #E4E9EC;
   --primary: #010508;
@@ -17,16 +19,16 @@
   --accent-amber: #F59E0B;
 }
 
-[data-theme="dark"] {
+.dark, [data-theme="dark"] {
   --bg: #0F172A;
-  --bg-gradient: linear-gradient(135deg, #0B1120 0%, #0F172A 50%, #1E293B 100%);
-  --surface: #1E293B;
-  --surface-frosted: rgba(30, 41, 59, 0.85);
-  --border: #334155;
-  --border-subtle: #1E293B;
+  --bg-gradient: linear-gradient(135deg, #090E17 0%, #121820 50%, #1A2230 100%);
+  --surface: #121820;
+  --surface-frosted: rgba(18, 24, 32, 0.90);
+  --border: #1E293B;
+  --border-subtle: #273549;
   --primary: #F8FAFC;
   --primary-hover: #E2E8F0;
-  --tint: #334155;
+  --tint: #1E293B;
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --accent-emerald: #34D399;
@@ -57,6 +59,7 @@ body {
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ── Focus rings ─────────────────────────────────────────────── */
@@ -75,11 +78,34 @@ body {
 }
 
 /* ── Animations ──────────────────────────────────────────────── */
-@keyframes pulse-subtle {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.85; }
+@keyframes mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
 }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 2s infinite ease-in-out;
+.mic-active {
+  animation: mic-pulse 1.5s infinite;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  animation: typing-bounce 1.2s infinite ease-in-out;
 }
